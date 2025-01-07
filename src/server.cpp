@@ -51,9 +51,27 @@ int main(int argc, char **argv) {
 
   std::cout << "Waiting for a client to connect...\n";
 
-  accept(server_fd, (struct sockaddr *) &client_addr, (socklen_t *) &client_addr_len);
+  int client_fd = accept(server_fd, (struct sockaddr *) &client_addr, (socklen_t *) &client_addr_len);
 
-  close(server_fd);
+  if(client_fd < 0 ) {
+    std::cerr << "Failed to accept client connection\n";
+  }
 
-  return 0;
+  std::memset(buffer, 0, sizeof(buffer));
+  int n = read(client_fd, buffer, 255);
+
+  if(n < 0) {
+     std::cerr << "Error in recieving command\n";
+  }
+
+   std::cout << "Data received from client Fd: " << client_fd<< "\n";
+
+   buffer[n] = '\0'; // Null-terminate the string
+   const char *response = "+PONG\r\n";
+
+   write(client_fd, response, strlen(response));
+
+   close(server_fd);
+
+   return 0;
 }
