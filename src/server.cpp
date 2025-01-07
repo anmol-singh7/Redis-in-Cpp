@@ -7,6 +7,12 @@
 #include <sys/socket.h>
 #include <arpa/inet.h>
 #include <netdb.h>
+#include <vector>
+#include <thread>
+#include <mutex>
+using namespace std;
+
+std::mutex cout_mutex;
 
 void handleClient(int client_fd) {
     char buffer[256];
@@ -15,6 +21,7 @@ void handleClient(int client_fd) {
         int n = read(client_fd, buffer, 255);
 
         if (n <= 0) {
+            std::lock_guard<std::mutex> lock(cout_mutex);
             std::cout << "Client disconnected: FD " << client_fd << "\n";
             close(client_fd);
             break;
@@ -26,10 +33,14 @@ void handleClient(int client_fd) {
         const char *response = "+PONG\r\n";
 
         write(client_fd, response, strlen(response));
+        
+        {
+            std::lock_guard<std::mutex> lock(cout_mutex);
+            std::cout << "Responded to client FD " << client_fd << ": " << response;
+        }
     }
 
 }
-
 
 
 int main(int argc, char **argv) {
@@ -65,23 +76,37 @@ int main(int argc, char **argv) {
     std::cerr << "listen failed\n";
     return 1;
   }
-  
+ 
+  std::vector<std::thread> threads;
   std::cout << "Logs from your program will appear here!\n";
-  
-  struct sockaddr_in client_addr;
-  socklen_t client_addr_len = sizeof(client_addr);
+  while(true){
+        struct sockaddr_in client_addr;
+        socklen_t client_addr_len = sizeof(client_addr);
 
-  std::cout << "Waiting for a client to connect...\n";
-  char buffer[256];
-  int client_fd = accept(server_fd, (struct sockaddr *) &client_addr, (socklen_t *) &client_addr_len);
+        std::cout << "Waiting for a client to connect...\n";
 
-  if(client_fd < 0 ) {
-    std::cerr << "Failed to accept client connection\n";
+        int client_fd = accept(server_fd, (struct sockaddr *) &client_addr, (socklen_t *) &client_addr_len);
+
+        if(client_fd < 0 ) {
+            std::cerr << "Failed to accept client connection\n";
+            continue;
+        }
+
+        {
+            std::lock_guard<std::mutex> lock(cout_mutex);
+            std::cout << "Client connected: FD " << client_fd << "\n";
+        }
+        
+        threads.emplace_back(handleClient,client_fd);
+   }
+
+  for (std::thread &t : threads) {
+        if (t.joinable()) {
+            std::cout<<"Joining thread: "<<t.get_id()<<"\n";
+            t.join();
+        }
   }
-  
-   handleClient(client_fd);
 
-   close(client_fd);
    close(server_fd);
 
    return 0;
