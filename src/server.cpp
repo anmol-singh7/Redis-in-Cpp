@@ -8,6 +8,7 @@
 #include <arpa/inet.h>
 #include <netdb.h>
 
+void 
 
 
 int main(int argc, char **argv) {
@@ -71,6 +72,7 @@ int main(int argc, char **argv) {
 
    write(client_fd, response, strlen(response));
 
+   close(client_fd);
    close(server_fd);
 
    return 0;
