@@ -50,7 +50,7 @@ int main(int argc, char **argv) {
   socklen_t client_addr_len = sizeof(client_addr);
 
   std::cout << "Waiting for a client to connect...\n";
-
+  char buffer[256];
   int client_fd = accept(server_fd, (struct sockaddr *) &client_addr, (socklen_t *) &client_addr_len);
 
   if(client_fd < 0 ) {
