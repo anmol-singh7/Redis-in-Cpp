@@ -8,8 +8,6 @@
 #include <arpa/inet.h>
 #include <netdb.h>
 
-void 
-
 
 int main(int argc, char **argv) {
   // Flush after every std::cout / std::cerr
@@ -58,20 +56,25 @@ int main(int argc, char **argv) {
     std::cerr << "Failed to accept client connection\n";
   }
 
-  std::memset(buffer, 0, sizeof(buffer));
-  int n = read(client_fd, buffer, 255);
+  char buffer[256];
+  while(true){
+        std::memset(buffer, 0, sizeof(buffer));
+        int n = read(client_fd, buffer, 255);
 
-  if(n < 0) {
-     std::cerr << "Error in recieving command\n";
+        if (n <= 0) {
+            std::cout << "Client disconnected: FD " << client_fd << "\n";
+            close(client_fd);
+            break;
+        }
+
+        std::cout << "Data received from client Fd: " << client_fd<< "\n";
+
+        buffer[n] = '\0'; // Null-terminate the string
+        const char *response = "+PONG\r\n";
+
+        write(client_fd, response, strlen(response));
+
   }
-
-   std::cout << "Data received from client Fd: " << client_fd<< "\n";
-
-   buffer[n] = '\0'; // Null-terminate the string
-   const char *response = "+PONG\r\n";
-
-   write(client_fd, response, strlen(response));
-
    close(client_fd);
    close(server_fd);
 
