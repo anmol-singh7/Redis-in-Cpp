@@ -1,4 +1,5 @@
 #include <iostream>
+#include<bits/stdc++.h>
 #include <cstdlib>
 #include <string>
 #include <cstring>
@@ -9,55 +10,67 @@
 #include <netdb.h>
 #include <vector>
 #include <thread>
-#include <mutex>
+#include <sys/epoll.h>
+#include <fcntl.h>
 using namespace std;
 
-std::mutex cout_mutex;
+#define MAX 1024
+#define BUFFERSIZ 1024
 
-void handleClient(int client_fd) {
-    char buffer[256];
-    while(true){
-        std::memset(buffer, 0, sizeof(buffer));
-        int n = read(client_fd, buffer, 255);
-
-        if (n <= 0) {
-            std::lock_guard<std::mutex> lock(cout_mutex);
-            std::cout << "Client disconnected: FD " << client_fd << "\n";
-            close(client_fd);
-            break;
-        }
-
-        std::cout << "Data received from client Fd: " << client_fd<< "\n";
-
-        buffer[n] = '\0'; // Null-terminate the string
-        const char *response = "+PONG\r\n";
-
-        write(client_fd, response, strlen(response));
-        
-        {
-            std::lock_guard<std::mutex> lock(cout_mutex);
-            std::cout << "Responded to client FD " << client_fd << ": " << response;
-        }
-    }
-
+void log(string msg){
+   std::cout<<msg + "\n";
+   return;
 }
 
+void errorLog(string errorMsg){
+    std::cerr << errorMsg + "\n";
+    return;
+}
+
+int handlePingReq(int client_fd) {
+    char buffer[256];
+    std::memset(buffer, 0, sizeof(buffer));
+    int n = read(client_fd, buffer, 255);
+
+    if (n <= 0) {
+        errorLog("Client disconnected: FD " + to_string(client_fd) + " n is:" + to_string(n));
+        return n;
+    }
+
+    log("Data received from client Fd: " + to_string(client_fd));
+
+    buffer[n] = '\0'; // Null-terminate the string
+    const char *response = "+PONG\r\n";
+
+    write(client_fd, response, strlen(response));
+    return 1;
+}
 
 int main(int argc, char **argv) {
   // Flush after every std::cout / std::cerr
   std::cout << std::unitbuf;
   std::cerr << std::unitbuf;
+
+  int ret;
+  int epoll_fd;
+  struct epoll_event ev;
+  struct epoll_event evlist[MAX];
+
+  int numberOfReadyFDs;
+
+  vector<int> moniteredFds;
   
-  int server_fd = socket(AF_INET, SOCK_STREAM, 0);
-  if (server_fd < 0) {
-   std::cerr << "Failed to create server socket\n";
+  int socket_fd = socket(AF_INET, SOCK_STREAM, 0);
+  if (socket_fd < 0) {
+   errorLog("Failed to create server socket");
    return 1;
   }
   
-
+  // Since the tester restarts your program quite often, setting SO_REUSEADDR
+  // ensures that we don't run into 'Address already in use' errors
   int reuse = 1;
-  if (setsockopt(server_fd, SOL_SOCKET, SO_REUSEADDR, &reuse, sizeof(reuse)) < 0) {
-    std::cerr << "setsockopt failed\n";
+  if (setsockopt(socket_fd, SOL_SOCKET, SO_REUSEADDR, &reuse, sizeof(reuse)) < 0) {
+    errorLog("setsockopt failed");
     return 1;
   }
   
@@ -66,48 +79,110 @@ int main(int argc, char **argv) {
   server_addr.sin_addr.s_addr = INADDR_ANY;
   server_addr.sin_port = htons(6379);
   
-  if (bind(server_fd, (struct sockaddr *) &server_addr, sizeof(server_addr)) != 0) {
-    std::cerr << "Failed to bind to port 6379\n";
+  if (bind(socket_fd, (struct sockaddr *) &server_addr, sizeof(server_addr)) != 0) {
+    errorLog("Failed to bind to port 6379");
     return 1;
   }
   
   int connection_backlog = 5;
-  if (listen(server_fd, connection_backlog) != 0) {
-    std::cerr << "listen failed\n";
+  if (listen(socket_fd, connection_backlog) != 0) {
+    errorLog("listen failed");
     return 1;
   }
- 
-  std::vector<std::thread> threads;
-  std::cout << "Logs from your program will appear here!\n";
-  while(true){
-        struct sockaddr_in client_addr;
-        socklen_t client_addr_len = sizeof(client_addr);
+  
+  
+  log("Logs from your program will appear here!");
+  
+  epoll_fd = epoll_create1(0);
 
-        std::cout << "Waiting for a client to connect...\n";
+  if(epoll_fd < 0 ){
+    errorLog("error while creating epoll");
+    return 1;
+  }
+  
+  ev.events = EPOLLIN;
+  ev.data.fd = STDIN_FILENO;
 
-        int client_fd = accept(server_fd, (struct sockaddr *) &client_addr, (socklen_t *) &client_addr_len);
+  ret = epoll_ctl(epoll_fd, EPOLL_CTL_ADD, STDIN_FILENO, &ev);
 
-        if(client_fd < 0 ) {
-            std::cerr << "Failed to accept client connection\n";
-            continue;
-        }
-
-        {
-            std::lock_guard<std::mutex> lock(cout_mutex);
-            std::cout << "Client connected: FD " << client_fd << "\n";
-        }
-        
-        threads.emplace_back(handleClient,client_fd);
-   }
-
-  for (std::thread &t : threads) {
-        if (t.joinable()) {
-            std::cout<<"Joining thread: "<<t.get_id()<<"\n";
-            t.join();
-        }
+  if(ret < 0 ){
+    errorLog("Error while adding STDIN_FILENO to epoll");
+    return 1;
   }
 
-   close(server_fd);
+  ev.data.fd = socket_fd;
+  ret = epoll_ctl(epoll_fd, EPOLL_CTL_ADD, socket_fd, &ev);
 
-   return 0;
+  if(ret < 0 ){
+    errorLog("Error while adding socket fd to epoll");
+    close(socket_fd);
+    return 1;
+  }
+
+
+  while(true){
+
+    numberOfReadyFDs = epoll_wait(epoll_fd, evlist,MAX, -1 );
+
+    if(numberOfReadyFDs < 0){
+      errorLog("Error occured during epoll wait");
+      break;
+    }
+
+    for(int i = 0; i<numberOfReadyFDs; i++){
+
+      struct epoll_event epv = evlist[i];
+
+      if(epv.data.fd == STDIN_FILENO){
+         char buff[BUFFERSIZ];
+         fgets(buff, BUFFERSIZ-1,stdin);
+
+         if(!strcmp(buff,"quit") || !strcmp(buff,"exit")){
+            close(socket_fd);
+            return 1;
+         }
+      }
+      if(epv.data.fd == socket_fd){
+            struct sockaddr_in client_addr;
+            socklen_t client_addr_len = sizeof(client_addr);
+
+            log("Waiting for a client to connect...");
+
+            int client_fd = accept(socket_fd, (struct sockaddr *) &client_addr, (socklen_t *) &client_addr_len);
+            
+            if(client_fd < 0 ) {
+                errorLog("Failed to accept client connection");
+                continue;
+            }
+
+            struct epoll_event cev;
+
+            cev.events = EPOLLIN;
+            cev.data.fd = client_fd;
+            ret = epoll_ctl(epoll_fd, EPOLL_CTL_ADD, client_fd, &cev);
+
+            if(ret < 0) {
+              errorLog("Error while adding client fd to epoll");
+              continue;
+            }
+
+            log("Client successfully added client FD: " + to_string(client_fd));
+      }
+      else{
+          int client_fd = epv.data.fd;
+          int res =  handlePingReq(client_fd);
+
+          if (res <= 0) {
+            close(client_fd);
+            epoll_ctl(epoll_fd, EPOLL_CTL_DEL, client_fd, &evlist[i]);
+          }
+      }
+
+    }
+    
+  }
+
+  close(socket_fd);
+
+  return 0;
 }
