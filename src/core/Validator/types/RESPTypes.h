@@ -1,7 +1,7 @@
 #ifndef RESPTYPES_H
 #define RESPTYPES_H
 
-enum class RESPTypes{
+enum class RESPTypes {
     SIMPLE_STRING,
     INTEGER,
     BULK_STRING,
