@@ -3,13 +3,13 @@
 
 #include <memory>
 #include "../RESPData.h"
-#include "../types/RESPTypes.h"
+#include "../types/RESPElement.h"
 
 using namespace std;
 
 class RESPFactory {
     public:
-    static unique_ptr<RESPData> createRESPData(RESPTypes type);
+    static unique_ptr<RESPElement> createRESPElement(RESPTypes type);
 
     static RESPTypes determineRESPType(char prefix);
 

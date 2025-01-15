@@ -2,10 +2,6 @@
 #define VALIDATOR_H
 
 #include <iostream>
-#include <string>
-#include <cctype>
-#include <cstdlib>
-#include "RESPData.h"
 
 using namespace std;
 

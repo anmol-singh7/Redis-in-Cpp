@@ -10,7 +10,7 @@ using namespace std;
 
 
 
-unique_ptr<RESPData> RESPFactory::createRESPData(RESPTypes type)
+unique_ptr<RESPElement> RESPFactory::createRESPElement(RESPTypes type)
 {
     switch(type)
     {
@@ -28,7 +28,7 @@ unique_ptr<RESPData> RESPFactory::createRESPData(RESPTypes type)
             throw std::invalid_argument("Unsupported RESP data type");
     }
 
-    return unique_ptr<RESPData>();
+    return unique_ptr<RESPElement>();
 }
 
 RESPTypes RESPFactory::determineRESPType(char prefix)
@@ -52,5 +52,6 @@ bool RESPFactory::consumeCRLF(const string &data, size_t &ptr)
         return false;
     }
 
+    ptr += 2;
     return false;
 }
