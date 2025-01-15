@@ -7,7 +7,7 @@
 class RESPInteger : public RESPElement {
 public:
 
-    bool validate(const string& data, size_t& ptr) override;
+    bool validate(string& data, size_t& ptr) override;
 
 };
 

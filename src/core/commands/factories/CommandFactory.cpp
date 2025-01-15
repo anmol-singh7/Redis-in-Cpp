@@ -6,7 +6,7 @@
 using namespace std;
 
 unique_ptr<Command> CommandFactory::createCommand(CommandType cmdType){
-    switch(cmdTpye){
+    switch(cmdType){
         case CommandType::PING:
             return make_unique<PingCommand>();
         case CommandType::ECHO:

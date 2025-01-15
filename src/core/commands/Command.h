@@ -4,11 +4,13 @@
 #include <iostream>
 #include <string>
 
+using namespace std;
+
 class Command {
 
     public:
     virtual ~Command() = default;
-    virtual bool validate(string& command, int ptr) const = 0;
+    virtual bool validate(string& command, int ptr)  = 0;
 
 };
 

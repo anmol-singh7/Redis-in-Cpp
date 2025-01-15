@@ -7,7 +7,9 @@ using namespace std;
 class RESPElement {
 
     public:
-    virtual bool validate(const string& data) = 0;
+    virtual bool validate(string& data, size_t& ptr) = 0;
 
     virtual ~RESPElement() = default;
 };
+
+#endif
