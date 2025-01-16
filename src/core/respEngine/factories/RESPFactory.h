@@ -2,20 +2,18 @@
 #define RESPFACTORY_H
 
 #include <memory>
-#include "../RESPData.h"
-#include "../types/RESPElement.h"
-
+#include "../RESPElement.h"
+#include "../RESPDefinitions.h"
+#include <sstream> 
 using namespace std;
 
 class RESPFactory {
     public:
-    static unique_ptr<RESPElement> createRESPElement(RESPTypes type);
+    static unique_ptr<RESPElement> createRESPElement(RESPType type);
 
-    static RESPTypes determineRESPType(char prefix);
+    static RESPType determineRESPType(char prefix);
 
-    static bool consumeCRLF(const string& data, size_t& ptr);
-
-    
+    static bool consumeCRLF(istream& stream);
 };
 
 #endif

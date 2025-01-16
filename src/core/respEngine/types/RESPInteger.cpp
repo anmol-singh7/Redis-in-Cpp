@@ -1,6 +1,6 @@
 #include "RESPInteger.h"
 
-bool RESPInteger::validate(string& data, size_t& ptr){
+bool RESPInteger::validate(istream& stream){
 
     return true;
 }

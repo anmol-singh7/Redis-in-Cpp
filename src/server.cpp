@@ -12,6 +12,7 @@
 #include <thread>
 #include <sys/epoll.h>
 #include <fcntl.h>
+#include "core/Validator.h"
 using namespace std;
 
 #define MAX 1024
@@ -28,9 +29,9 @@ void errorLog(string errorMsg){
 }
 
 int handlePingReq(int client_fd) {
-    char buffer[256];
+    char buffer[BUFFERSIZ];
     std::memset(buffer, 0, sizeof(buffer));
-    int n = read(client_fd, buffer, 255);
+    int n = read(client_fd, buffer, BUFFERSIZ - 1);
 
     if (n <= 0) {
         errorLog("Client disconnected: FD " + to_string(client_fd) + " n is:" + to_string(n));
@@ -40,7 +41,21 @@ int handlePingReq(int client_fd) {
     log("Data received from client Fd: " + to_string(client_fd));
 
     buffer[n] = '\0'; // Null-terminate the string
-    const char *response = "+PONG\r\n";
+
+    Validator validator;
+    bool isValid = validator.isValidCommand(buffer, n);
+    
+    log("Command is valid: " + to_string(isValid));
+    
+    if(!isValid){
+        errorLog("Invalid command received from client FD: " + to_string(client_fd));
+        char *response = "$21\r\nERROR invalid command\r\n";
+        write(client_fd, response, strlen(response));
+        return 1;
+    }
+
+
+    char *response = "+PONG\r\n";
 
     write(client_fd, response, strlen(response));
     return 1;

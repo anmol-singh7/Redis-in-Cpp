@@ -1,6 +1,6 @@
 #include "RESPError.h"
 
-bool RESPError::validate(string& data, size_t& ptr){
+bool RESPError::validate(istream& stream){
 
     return true;
 }

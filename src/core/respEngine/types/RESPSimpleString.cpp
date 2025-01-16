@@ -1,6 +1,6 @@
 #include "RESPSimpleString.h"
 
-bool RESPSimpleString::validate(string& data, size_t& ptr){
+bool RESPSimpleString::validate(istream& stream){
 
     return true;
 }

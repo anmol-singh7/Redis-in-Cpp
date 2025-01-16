@@ -4,25 +4,22 @@
 #include "../types/RESPBulkString.h"
 #include "../types/RESPArray.h"
 #include "../types/RESPError.h"
-#include "../types/RESPTypes.h"
 #include <stdexcept>
 using namespace std;
 
-
-
-unique_ptr<RESPElement> RESPFactory::createRESPElement(RESPTypes type)
+unique_ptr<RESPElement> RESPFactory::createRESPElement(RESPType type)
 {
     switch(type)
     {
-        case RESPTypes::SIMPLE_STRING:
+        case RESPType::SIMPLE_STRING:
             return make_unique<RESPSimpleString>();
-        case RESPTypes::INTEGER:
+        case RESPType::INTEGER:
             return make_unique<RESPInteger>();
-        case RESPTypes::BULK_STRING:
+        case RESPType::BULK_STRING:
             return make_unique<RESPBulkString>();
-        case RESPTypes::ARRAY:
+        case RESPType::ARRAY:
             return make_unique<RESPArray>();
-        case RESPTypes::ERROR:
+        case RESPType::ERROR:
             return make_unique<RESPError>();
         default:
             throw std::invalid_argument("Unsupported RESP data type");
@@ -31,27 +28,22 @@ unique_ptr<RESPElement> RESPFactory::createRESPElement(RESPTypes type)
     return unique_ptr<RESPElement>();
 }
 
-RESPTypes RESPFactory::determineRESPType(char prefix)
+RESPType RESPFactory::determineRESPType(char prefix)
 {
     switch(prefix)
     {
-        case '+': return RESPTypes::SIMPLE_STRING;
-        case ':': return RESPTypes::INTEGER;
-        case '$': return RESPTypes::BULK_STRING;
-        case '*': return RESPTypes::ARRAY;
-        case '-': return RESPTypes::ERROR;
+        case '+': return RESPType::SIMPLE_STRING;
+        case ':': return RESPType::INTEGER;
+        case '$': return RESPType::BULK_STRING;
+        case '*': return RESPType::ARRAY;
+        case '-': return RESPType::ERROR;
         default: throw std::invalid_argument("Invalid RESP type prefix");
     }
-    return RESPTypes();
+    return RESPType();
 }
 
-bool RESPFactory::consumeCRLF(const string &data, size_t &ptr)
-{
-    if(ptr + 1 >= data.size() || data[ptr] != '\r' || data[ptr + 1] != '\n')
-    {
-        return false;
-    }
-
-    ptr += 2;
-    return true;
+bool RESPFactory::consumeCRLF(istream& stream) {
+    char c1 = stream.get();
+    char c2 = stream.get();
+    return c1 == '\r' && c2 == '\n';
 }
