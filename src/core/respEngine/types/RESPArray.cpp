@@ -28,7 +28,7 @@ bool RESPArray::validate(string& data, size_t& ptr){
         RESPTypes elementType = RESPFactory::determineRESPType(prefix);
         unique_ptr<RESPElement> respElement = RESPFactory::createRESPElement(elementType);
         
-        if(respElement->validate(data, ptr)){
+        if(!respElement->validate(data, ptr)){
             return false;
         }
 

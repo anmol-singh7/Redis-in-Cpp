@@ -53,5 +53,5 @@ bool RESPFactory::consumeCRLF(const string &data, size_t &ptr)
     }
 
     ptr += 2;
-    return false;
+    return true;
 }

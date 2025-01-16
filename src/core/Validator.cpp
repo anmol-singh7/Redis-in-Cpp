@@ -1,8 +1,8 @@
 #include "Validator.h"
-#include "types/RESPTypes.h"
-#include "factories/RESPFactory.h"
+#include "respEngine/types/RESPTypes.h"
+#include "respEngine/factories/RESPFactory.h"
+#include "respEngine/RESPElement.h"
 #include <string>
-#include "RESPElement.h"
 using namespace std;
 
 
