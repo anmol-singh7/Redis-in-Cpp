@@ -1,5 +1,5 @@
 #include "Validator.h"
-#include "respEngine/types/RESPDefinitions.h"
+#include "respEngine/RESPDefinitions.h"
 #include "respEngine/factories/RESPFactory.h"
 #include "respEngine/RESPElement.h"
 #include <string>

@@ -2,10 +2,29 @@
 #include "../PingCommand.h"
 #include "../EchoCommand.h"
 #include "../UnknownCommand.h"
+#include <iostream>
+#include <algorithm>
+#include <string>
+#include <cctype>
 
 using namespace std;
 
-unique_ptr<Command> CommandFactory::createCommand(CommandType cmdType){
+CommandType CommandFactory::determineCommandType(string cmdType)
+{
+    // transform(cmdType.begin(), cmdType.end(), cmdType.begin(),[](unsigned char c) { return tolower(c); });
+    // switch(cmdType){
+    //     case "ping":
+    //         return CommandType::PING;
+    //     case "echo":
+    //         return CommandType::ECHO;
+    //     default:
+    //         return CommandType::UNKNOWN;
+    // }
+    return CommandType();
+}
+
+unique_ptr<Command> CommandFactory::createCommand(CommandType cmdType)
+{
     switch(cmdType){
         case CommandType::PING:
             return make_unique<PingCommand>();

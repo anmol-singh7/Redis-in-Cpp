@@ -3,6 +3,8 @@
 
 #include <string> 
 #include "../RESPElement.h" 
+#include "../factories/RESPFactory.h"
+#include <cctype>
 
 class RESPBulkString : public RESPElement {
 public:

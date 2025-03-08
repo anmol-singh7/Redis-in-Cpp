@@ -3,6 +3,7 @@
 
 #include <iostream>
 #include <string>
+#include "CommandTypes.h"
 
 using namespace std;
 
