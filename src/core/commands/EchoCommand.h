@@ -8,7 +8,7 @@ using namespace std;
 
 class EchoCommand : public Command{
     public:
-    bool validate(string& command, int ptr) override;
+    string execute(const RESPValue&  args) override;
 };
 
 #endif

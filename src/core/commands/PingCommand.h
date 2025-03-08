@@ -8,7 +8,7 @@ using namespace std;
 
 class PingCommand : public Command{
     public:
-    bool validate(string& command, int ptr) override;
+    string execute(const RESPValue& args) override;
 };
 
 #endif

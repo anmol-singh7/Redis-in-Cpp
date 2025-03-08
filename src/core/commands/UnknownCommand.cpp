@@ -1,8 +1,5 @@
 #include "UnknownCommand.h"
 
-
-bool UnknownCommand::validate(string &command, int ptr){
-
-    return false;
+string UnknownCommand::execute(const RESPValue& args){
+    return string();
 }
-
