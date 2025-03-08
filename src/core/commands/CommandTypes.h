@@ -4,6 +4,8 @@
 enum class CommandType {
     PING,
     ECHO,
+    SET,
+    GET,
     UNKNOWN
 };
 
