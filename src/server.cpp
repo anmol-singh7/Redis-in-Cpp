@@ -13,6 +13,7 @@
 #include <sys/epoll.h>
 #include <fcntl.h>
 #include "core/Validator.h"
+#include "core/CommandHandler.h"
 using namespace std;
 
 #define MAX 1024
@@ -29,7 +30,10 @@ void errorLog(string errorMsg){
 }
 
 int handlePingReq(int client_fd) {
+  try{
     char buffer[BUFFERSIZ];
+    CommandHandler cmdHandler;
+
     std::memset(buffer, 0, sizeof(buffer));
     int n = read(client_fd, buffer, BUFFERSIZ - 1);
 
@@ -41,24 +45,18 @@ int handlePingReq(int client_fd) {
     log("Data received from client Fd: " + to_string(client_fd));
 
     buffer[n] = '\0'; // Null-terminate the string
-
-    Validator validator;
-    bool isValid = validator.isValidCommand(buffer, n);
     
-    log("Command is valid: " + to_string(isValid));
-    
-    if(!isValid){
-        errorLog("Invalid command received from client FD: " + to_string(client_fd));
-        char *response = "$21\r\nERROR invalid command\r\n";
-        write(client_fd, response, strlen(response));
-        return 1;
-    }
+    string response = cmdHandler.handleCommand(buffer,n);
 
-
-    char *response = "+PONG\r\n";
-
-    write(client_fd, response, strlen(response));
+    write(client_fd, response.c_str(), response.size());
+   
+  }
+  catch(const exception& e){
+    cerr << "Error :" << e.what() << endl;
     return 1;
+  }
+  
+  return 1;
 }
 
 int main(int argc, char **argv) {

@@ -5,19 +5,30 @@
 #include <string>
 using namespace std;
 
+string respTypeToString(RESPType type) {
+    switch (type) {
+        case RESPType::INTEGER: return "INTEGER";
+        case RESPType::DOUBLE: return "DOUBLE";
+        case RESPType::SIMPLE_STRING: return "SIMPLE_STRING";
+        case RESPType::BULK_STRING: return "BULK_STRING";
+        case RESPType::VERBATIM_STRING: return "VERBATIM_STRING";
+        case RESPType::BOOLEAN: return "BOOLEAN";
+        case RESPType::ARRAY: return "ARRAY";
+        case RESPType::MAP: return "MAP";
+        case RESPType::ERROR: return "ERROR";
+        default: return "UNKNOWN";
+    }
+}
 
-bool Validator::isValidCommand(char* cmd,int sz_Command){
+bool Validator::isValidCommand(string& command){
     try{
-        if(sz_Command < 1) return false;
-
-        string command(cmd, sz_Command);
-
         istringstream stream(command);
 
         char prefix = stream.get();
         if (prefix != '*') return false;
 
         RESPType elementType = RESPFactory::determineRESPType(prefix);
+
         unique_ptr<RESPElement> respElement = RESPFactory::createRESPElement(elementType);
 
         return respElement->validate(stream);
@@ -30,5 +41,6 @@ bool Validator::isValidCommand(char* cmd,int sz_Command){
     return false;
 
 }
+
 
 

@@ -8,7 +8,7 @@ using namespace std;
 class Validator {
 
     public:
-    bool isValidCommand(char* cmd,int sz_Command);
+    bool isValidCommand(string& command);
 
 };
 
