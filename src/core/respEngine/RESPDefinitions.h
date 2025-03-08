@@ -1,38 +1,62 @@
-#ifndef RESPDEFINITIONS_H
-#define RESPDEFINITIONS_H
+#ifndef RESP_DEFINITIONS_H
+#define RESP_DEFINITIONS_H
 
 #include <variant>
-#include <string>
 #include <vector>
 #include <map>
+#include <string>
 #include <cstdint>
+#include <memory>  // For shared_ptr
+
 using namespace std;
 
-// Enum class for RESP3 data types
+
+// Enum to define different RESP types
 enum class RESPType {
-    SIMPLE_STRING,
     INTEGER,
-    BULK_STRING,
-    ARRAY,
-    ERROR,
-    NULL_VALUE,
-    BOOLEAN,
     DOUBLE,
-    SET,
+    SIMPLE_STRING,
+    BULK_STRING,
+    VERBATIM_STRING,
+    BOOLEAN,
+    RESP_NULL,
+    ARRAY,
     MAP,
-    ATTRIBUTE,
-    VERBATIM_STRING
+    ERROR
 };
 
-// Define RESPValue as a variant of all possible RESP3 types
-using RESPValue = variant<
-    int64_t,                                        // Integer
-    double,                                         // Double
-    string,                                         // Simple String, Bulk String, or Verbatim String
-    bool,                                           // Boolean
-    nullptr_t,                                       // Null
-    vector<variant<int64_t, double, string, bool, nullptr_t>>, // Array or Set
-    map<string, variant<int64_t, double, string, bool, nullptr_t>> // Map
->;
+// Forward declaration
+struct RESPValueStruct;
 
-#endif 
+// Define a shared pointer to allow recursive types
+using RESPValue = shared_ptr<RESPValueStruct>;
+
+
+// Struct to hold the actual RESP value
+struct RESPValueStruct {
+    variant<
+        int64_t,                        // Integer
+        double,                         // Double
+        string,                         // Simple String, Bulk String, Verbatim String
+        bool,                           // Boolean
+        nullptr_t,                      // Null
+        vector<RESPValue>,              // ✅ Nested Arrays (RESPVarArray)
+        map<string, RESPValue>          // ✅ Nested Maps (RESPVarMap)
+    > value;
+
+    // Constructors for easy assignment  
+    template <typename T>
+    RESPValueStruct(T v) : value(move(v)) {}
+
+    // Factory method for creating shared_ptr instances
+    template <typename T>
+    static RESPValue create(T v) {
+        return make_shared<RESPValueStruct>(move(v));
+    }
+};
+
+// Aliases for better readability
+using RESPVarArray = vector<RESPValue>;
+using RESPVarMap = map<string, RESPValue>;
+
+#endif // RESP_DEFINITIONS_H

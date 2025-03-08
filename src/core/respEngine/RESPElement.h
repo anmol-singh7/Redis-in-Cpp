@@ -6,15 +6,17 @@
 #include <cctype>
 #include "RESPDefinitions.h"
 #include <sstream>
+#include "../utils/RESPUtils.h"
 using namespace std;
 
-    
-class RESPElement {
+class RESPElement {  
 
     public:
-    virtual bool validate(istream& stream) = 0;
-    
-    virtual ~RESPElement() = default;
+        virtual bool validate(istream& stream) = 0;
+        
+        virtual RESPValue parseElement(istream& stream) = 0;
+        
+        virtual ~RESPElement() = default;
 };
 
 #endif

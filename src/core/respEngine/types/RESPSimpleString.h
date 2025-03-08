@@ -9,6 +9,7 @@ public:
 
     bool validate(istream& stream) override;
 
+    RESPValue parseElement(istream& stream) override;
 };
 
 #endif

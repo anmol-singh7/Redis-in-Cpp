@@ -13,7 +13,7 @@ class RESPFactory {
 
     static RESPType determineRESPType(char prefix);
 
-    static bool consumeCRLF(istream& stream);
+    // static bool consumeCRLF(istream& stream);
 };
 
 #endif

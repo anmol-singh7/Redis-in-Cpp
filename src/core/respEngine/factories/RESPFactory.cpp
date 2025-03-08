@@ -41,9 +41,3 @@ RESPType RESPFactory::determineRESPType(char prefix)
     }
     return RESPType();
 }
-
-bool RESPFactory::consumeCRLF(istream& stream) {
-    char c1 = stream.get();
-    char c2 = stream.get();
-    return c1 == '\r' && c2 == '\n';
-}
