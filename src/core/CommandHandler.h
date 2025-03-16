@@ -7,7 +7,7 @@ using namespace std;
 class CommandHandler{
 
     public:
-    virtual string handleCommand(char *cmd, int sz_Command);
+    static string handleCommand(char *cmd, int sz_Command);
 };
 
 #endif

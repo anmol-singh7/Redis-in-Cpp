@@ -57,8 +57,7 @@ bool ClientHandler::processRequest(int fd) {
 
         clients[fd]->updateActivity();  // Update last active time
 
-        CommandHandler cmdHandler;
-        std::string response = cmdHandler.handleCommand(buffer, bytesRead);
+        std::string response = CommandHandler::handleCommand(buffer, bytesRead);
 
         ssize_t bytesSent = send(fd, response.c_str(), response.size(), 0);
         if (bytesSent < 0) {
