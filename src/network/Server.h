@@ -15,13 +15,13 @@
 #include <stdexcept>
 #include <sys/epoll.h>
 #include <fcntl.h>
-#include <algorithm>
+#include <unordered_map>
 #include "core/Validator.h"
-#include "core/CommandHandler.h"
 
-#define MAX 1024
-#define BUFFER_SIZE 1024
-#define PING_PACKET_SIZE 1024
+#include "ClientHandler.h"
+
+#define MAX_EVENTS 1024
+
 
 using namespace std;
 
@@ -31,21 +31,17 @@ private:
     int epoll_fd;
     struct sockaddr_in server_addr;
     int port;
-    int numberOfReadyFDs;
-    vector<int> monitoredFds; // For tracking clients (future improvement)
+    ClientHandler clientHandler;
 
 public:
     Server();
-    ~Server(); // Destructor to clean up resources
-
+    ~Server();
     void init();
     void configureSocketOptions();
     void configureServerAddress();
     void bindServer();
     void listenServer();
     void setupEpoll();
-    void removeClient(int fd);
-    int acceptClient();
     void startEventLoop();
     void cleanup();
     void setPort(int port);
